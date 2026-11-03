@@ -8,7 +8,7 @@ The project allows users to explore geocaches geographically through a browser-b
 
 - **[Live Application](https://your-app-url)** — Explore the interactive geocache map.
 - **[Source Code](https://script.google.com/macros/s/AKfycbx62TOwtmu0IxWpPEMIhqOi3CcflyM13Lp29C8xlgsDosFMdDMU_4NneNH5u_gGHFQaOg/exec)** — View the implementation.
-- 
+
 ## Features
 
 - **Interactive Map:** Displays geocaches using Leaflet and OpenStreetMap.
