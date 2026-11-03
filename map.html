@@ -1,0 +1,189 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+  <base target="_top">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <link rel="stylesheet"
+    href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+
+  <style>
+    body { margin: 0; font-family: Arial, sans-serif; }
+    #map { height: 100vh; }
+
+    #controls {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      z-index: 1000;
+      background: white;
+      padding: 15px;
+      border-radius: 6px;
+      box-shadow: 0 2px 8px #0003;
+      width: 230px;
+    }
+
+    label { display: block; margin-top: 10px; }
+    input { width: 100%; box-sizing: border-box; }
+    button { margin-top: 12px; width: 100%; padding: 8px; }
+    #status { margin-top: 10px; font-size: 13px; }
+  </style>
+</head>
+<body>
+
+<div id="map"></div>
+
+<div id="controls">
+  <strong>Geocache Explorer</strong>
+
+  <label>Radius (miles)</label>
+  <input id="radius" type="number" value="10" min="1" max="25">
+
+  <label>Difficulty</label>
+  <div>
+    <input id="minDifficulty" type="number" value="1" min="1" max="5" step="0.5">
+    to
+    <input id="maxDifficulty" type="number" value="5" min="1" max="5" step="0.5">
+  </div>
+
+  <label>Terrain</label>
+  <div>
+    <input id="minTerrain" type="number" value="1" min="1" max="5" step="0.5">
+    to
+    <input id="maxTerrain" type="number" value="5" min="1" max="5" step="0.5">
+  </div>
+
+  <button onclick="search()">Search</button>
+
+  <div id="status">Click the map to choose a search center.</div>
+</div>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+<script>
+  const map = L.map("map").setView([38.9822, -94.6708], 11);
+
+  L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
+    attribution: '&copy; OpenStreetMap contributors',
+    maxZoom: 19
+  }).addTo(map);
+
+  const markers = L.layerGroup().addTo(map);
+
+  let cityBoundary;
+
+function showCityBoundary(city) {
+  google.script.run
+    .withSuccessHandler(geojson => {
+      if (cityBoundary) map.removeLayer(cityBoundary);
+
+      cityBoundary = L.geoJSON(geojson, {
+        style: {
+          color: "red",
+          weight: 3,
+          fillColor: "red",
+          fillOpacity: 0.05
+        }
+      }).addTo(map);
+
+      map.fitBounds(cityBoundary.getBounds());
+    })
+    .withFailureHandler(error => {
+      console.error("Boundary error:", error.message);
+    })
+    .getCityBoundary(city);
+}
+
+showCityBoundary("Overland Park");
+
+  let center = [38.9822, -94.6708];
+  let centerMarker = L.marker(center).addTo(map);
+  let radiusCircle;
+  let requestId = 0;
+
+  map.on("click", e => {
+    center = [e.latlng.lat, e.latlng.lng];
+    centerMarker.setLatLng(center);
+    search();
+  });
+
+  function getValue(id) {
+    return Number(document.getElementById(id).value);
+  }
+
+  function search() {
+    const radius = getValue("radius");
+    const minD = getValue("minDifficulty");
+    const maxD = getValue("maxDifficulty");
+    const minT = getValue("minTerrain");
+    const maxT = getValue("maxTerrain");
+
+    if (
+      !Number.isFinite(radius) || radius < 1 || radius > 25 ||
+      minD < 1 || maxD > 5 || minD > maxD ||
+      minT < 1 || maxT > 5 || minT > maxT
+    ) {
+      document.getElementById("status").textContent =
+        "Invalid filter values.";
+      return;
+    }
+
+    const currentRequest = ++requestId;
+    document.getElementById("status").textContent = "Searching...";
+
+    google.script.run
+      .withSuccessHandler(caches => {
+        if (currentRequest !== requestId) return;
+
+        markers.clearLayers();
+
+        caches.forEach(cache => {
+          const lat = Number(cache.Latitude);
+          const lon = Number(cache.Longitude);
+
+          const details = document.createElement("div");
+
+          [
+            cache.Name,
+            `ID: ${cache.CacheID}`,
+            `Difficulty: ${cache.Difficulty}`,
+            `Terrain: ${cache.Terrain}`,
+            `Distance: ${cache.DistanceMiles.toFixed(2)} miles`
+          ].forEach(line => {
+            const div = document.createElement("div");
+            div.textContent = line;
+            details.appendChild(div);
+          });
+
+          L.marker([lat, lon])
+            .bindPopup(details)
+            .addTo(markers);
+        });
+
+        if (radiusCircle) map.removeLayer(radiusCircle);
+
+        radiusCircle = L.circle(center, {
+          radius: radius * 1609.344,
+          color: "blue",
+          fillOpacity: 0.05
+        }).addTo(map);
+
+        document.getElementById("status").textContent =
+          `${caches.length} caches found`;
+      })
+      .withFailureHandler(error => {
+        if (currentRequest !== requestId) return;
+        document.getElementById("status").textContent =
+          `Error: ${error.message}`;
+      })
+      .searchCaches(
+        center[0], center[1],
+        radius, minD, maxD, minT, maxT
+      );
+  }
+
+  search();
+</script>
+</body>
+</html>
