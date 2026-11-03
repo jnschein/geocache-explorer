@@ -7,7 +7,7 @@ The project allows users to explore geocaches geographically through a browser-b
 ## Links
 
 - **[Live Application](https://script.google.com/macros/s/AKfycbx62TOwtmu0IxWpPEMIhqOi3CcflyM13Lp29C8xlgsDosFMdDMU_4NneNH5u_gGHFQaOg/exec)** — Explore the interactive geocache map.
-- **[Source Code](https://script.google.com/macros/s/AKfycbx62TOwtmu0IxWpPEMIhqOi3CcflyM13Lp29C8xlgsDosFMdDMU_4NneNH5u_gGHFQaOg/exec)** — View the implementation.
+- **[Source Code](https://github.com/jnschein/geocache-explorer/blob/main/getGeocaches.js)** — View the implementation.
 
 ## Features
 
