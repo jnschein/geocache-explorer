@@ -4,6 +4,11 @@ A geocaching application demonstrating the integration of **Google Apps Script, 
 
 The project allows users to explore geocaches geographically through a browser-based map or query the same data conversationally using Claude.ai.
 
+## Links
+
+- **[Live Application](https://your-app-url)** — Explore the interactive geocache map.
+- **[Source Code](https://script.google.com/macros/s/AKfycbx62TOwtmu0IxWpPEMIhqOi3CcflyM13Lp29C8xlgsDosFMdDMU_4NneNH5u_gGHFQaOg/exec)** — View the implementation.
+- 
 ## Features
 
 - **Interactive Map:** Displays geocaches using Leaflet and OpenStreetMap.
